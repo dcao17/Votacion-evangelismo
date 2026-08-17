@@ -523,7 +523,7 @@
   <div id="no-votes-wrap"><div class="no-votes">Todavía nadie ha votado hoy. Sé el primero.</div></div>
 
   <div class="voter-row" style="margin-top:1.6rem;">
-    <input type="text" id="voter-name" placeholder="Tu nombre y apellido" maxlength="40">
+    <input type="text" id="voter-name" placeholder="Tu nombre" maxlength="40">
   </div>
   <p class="hint" id="name-hint">Escribe tu nombre y luego pulsa "Votar" junto al lugar que prefieras.</p>
 
@@ -546,18 +546,18 @@
 
 <script>
 const PLACES = [
-  {id:"m1-parque-central", mes:"Mes 1", nombre:"Parque Central (zona 1)", objetivo:"Oración por personas y evangelismo relacional", horario:"10:00 am – 12:00 pm", cat:"parque"},
-  {id:"m1-hogar-san-vicente", mes:"Mes 1", nombre:"Hogar San Vicente de Paúl (zona 7)", objetivo:"Visita a adultos mayores", horario:"3:00 pm – 5:00 pm", cat:"ancianos"},
-  {id:"m2-parque-asuncion", mes:"Mes 2", nombre:"Parque Ecológico La Asunción (zona 5)", objetivo:"Oración por personas y evangelismo relacional", horario:"4:00 pm – 7:00 pm", cat:"parque"},
-  {id:"m2-centro-moore", mes:"Mes 2", nombre:"Centro Moore", objetivo:"Tarde con niños", horario:"2:00 pm – 5:00 pm", cat:"ninos"},
-  {id:"m3-parque-erick", mes:"Mes 3", nombre:"Parque Erick Barrondo (zona 7)", objetivo:"Oración por personas y evangelismo relacional", horario:"10:00 am – 12:00 pm", cat:"parque"},
-  {id:"m3-hospital-roosevelt", mes:"Mes 3", nombre:"Hospital Roosevelt (áreas externas) / Hogar San José", objetivo:"Oración por personas y evangelismo relacional", horario:"3:00 pm – 6:00 pm", cat:"hospital"},
-  {id:"m4-parque-americas", mes:"Mes 4", nombre:"Parque Las Américas (zona 14)", objetivo:"Oración por personas y evangelismo relacional", horario:"4:00 pm – 6:00 pm", cat:"parque"},
-  {id:"m4-hogar-vida-feliz", mes:"Mes 4", nombre:"Hogar de Ancianos Vida Feliz (Mixco)", objetivo:"Visita a adultos mayores", horario:"3:00 pm – 5:00 pm", cat:"ancianos"},
-  {id:"m5-parque-colon", mes:"Mes 5", nombre:"Parque Colón / Plaza Barrios (zona 1)", objetivo:"Oración por personas y evangelismo relacional", horario:"10:00 am – 12:00 pm", cat:"parque"},
-  {id:"m5-hogar-zafiro", mes:"Mes 5", nombre:"Hogar Zafiro (zona 5) / Casa Ronald McDonald", objetivo:"Tarde con niños", horario:"2:00 pm – 5:00 pm", cat:"ninos"},
-  {id:"m6-parque-berlin", mes:"Mes 6", nombre:"Parque Berlín (zona 13)", objetivo:"Oración por personas y evangelismo relacional", horario:"4:00 pm – 7:00 pm", cat:"parque"},
-  {id:"m6-centro-moore", mes:"Mes 6", nombre:"Centro Moore", objetivo:"Tarde con niños", horario:"2:00 pm – 5:00 pm", cat:"ninos"}
+  {id:"m1-parque-central", mes:"Mes 1", nombre:"Parque Central (zona 1)", objetivo:"Oración por personas y evangelismo relacional", horario:"10:00 am – 12:00 pm", cat:"parque", foto:"images/m1-parque-central.jpg"},
+  {id:"m1-hogar-san-vicente", mes:"Mes 1", nombre:"Hogar San Vicente de Paúl (zona 7)", objetivo:"Visita a adultos mayores", horario:"3:00 pm – 5:00 pm", cat:"ancianos", foto:""},
+  {id:"m2-parque-asuncion", mes:"Mes 2", nombre:"Parque Ecológico La Asunción (zona 5)", objetivo:"Oración por personas y evangelismo relacional", horario:"4:00 pm – 7:00 pm", cat:"parque", foto:""},
+  {id:"m2-centro-moore", mes:"Mes 2", nombre:"Centro Moore", objetivo:"Tarde con niños", horario:"2:00 pm – 5:00 pm", cat:"ninos", foto:""},
+  {id:"m3-parque-erick", mes:"Mes 3", nombre:"Parque Erick Barrondo (zona 7)", objetivo:"Oración por personas y evangelismo relacional", horario:"10:00 am – 12:00 pm", cat:"parque", foto:""},
+  {id:"m3-hospital-roosevelt", mes:"Mes 3", nombre:"Hospital Roosevelt (áreas externas) / Hogar San José", objetivo:"Oración por personas y evangelismo relacional", horario:"3:00 pm – 6:00 pm", cat:"hospital", foto:""},
+  {id:"m4-parque-americas", mes:"Mes 4", nombre:"Parque Las Américas (zona 14)", objetivo:"Oración por personas y evangelismo relacional", horario:"4:00 pm – 6:00 pm", cat:"parque", foto:""},
+  {id:"m4-hogar-vida-feliz", mes:"Mes 4", nombre:"Hogar de Ancianos Vida Feliz (Mixco)", objetivo:"Visita a adultos mayores", horario:"3:00 pm – 5:00 pm", cat:"ancianos", foto:""},
+  {id:"m5-parque-colon", mes:"Mes 5", nombre:"Parque Colón / Plaza Barrios (zona 1)", objetivo:"Oración por personas y evangelismo relacional", horario:"10:00 am – 12:00 pm", cat:"parque", foto:""},
+  {id:"m5-hogar-zafiro", mes:"Mes 5", nombre:"Hogar Zafiro (zona 5) / Casa Ronald McDonald", objetivo:"Tarde con niños", horario:"2:00 pm – 5:00 pm", cat:"ninos", foto:""},
+  {id:"m6-parque-berlin", mes:"Mes 6", nombre:"Parque Berlín (zona 13)", objetivo:"Oración por personas y evangelismo relacional", horario:"4:00 pm – 7:00 pm", cat:"parque", foto:""},
+  {id:"m6-centro-moore", mes:"Mes 6", nombre:"Centro Moore", objetivo:"Tarde con niños", horario:"2:00 pm – 5:00 pm", cat:"ninos", foto:""}
 ];
 
 const CARD_ICONS = {
@@ -764,7 +764,9 @@ function render(isInitialLoad){
       const w = PLACES.find(p => p.id === winnerId);
       const wasHidden = !winnerWrap.classList.contains("show");
       winnerWrap.classList.add("show");
-      winnerPhoto.innerHTML = ILLUSTRATIONS[w.cat];
+      winnerPhoto.innerHTML = w.foto
+        ? `<img src="${w.foto}" alt="${w.nombre}" style="width:100%; height:100%; object-fit:cover; display:block;">`
+        : ILLUSTRATIONS[w.cat];
       winnerName.textContent = w.nombre;
       winnerMeta.textContent = winnerCount + " de " + total + " votos · " + w.objetivo;
       if(!isInitialLoad && (wasHidden || lastWinnerId !== winnerId)){
