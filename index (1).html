@@ -6,6 +6,9 @@
 <title>¿A dónde vamos hoy? — Votación de evangelismo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase (guarda los votos en la nube para que se compartan entre todos los celulares) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   :root{
     --indigo:#5B4FE9;
@@ -608,11 +611,30 @@ const ILLUSTRATIONS = {
   </svg>`
 };
 
+// ============================================================
+// CONFIGURACIÓN DE FIREBASE — reemplaza estos valores con los
+// de TU proyecto (Firebase Console > Configuración del proyecto
+// > Tus apps > Config del SDK). Es gratis y toma unos minutos.
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAR2IO54JQMP8cLBelRUpnYkoaT3GFZRLw",
+  authDomain: "votacion-evangelizmo.firebaseapp.com",
+  databaseURL: "https://votacion-evangelizmo-default-rtdb.firebaseio.com",
+  projectId: "votacion-evangelizmo",
+  storageBucket: "votacion-evangelizmo.firebasestorage.app",
+  messagingSenderId: "1055146980472",
+  appId: "1:1055146980472:web:c75791076c9639d856298d",
+  measurementId: "G-WPQ8ST6WEW"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+// ============================================================
+
 function todayKey(){
   const d = new Date();
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
 }
-const STORAGE_KEY = "votos-evangelismo:" + todayKey();
+const votesRef = db.ref("votos/" + todayKey());
 
 const container = document.getElementById("places-container");
 const totalEl = document.getElementById("total-votes");
@@ -629,20 +651,25 @@ document.getElementById("fecha-hoy").textContent = new Date().toLocaleDateString
 let votes = [];
 let lastWinnerId = null;
 let lastCounts = {};
+let gotFirstSnapshot = false;
 
-async function loadVotes(){
-  try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    votes = res && res.value ? JSON.parse(res.value) : [];
-  }catch(e){
-    votes = [];
-  }
-  render(true);
+function loadVotes(){
+  // Escucha cambios en tiempo real: cuando cualquier persona vota desde
+  // su celular, este navegador se actualiza solo, sin recargar la página.
+  votesRef.on("value", (snapshot) => {
+    const data = snapshot.val();
+    votes = data ? Object.values(data) : [];
+    render(!gotFirstSnapshot);
+    gotFirstSnapshot = true;
+  }, (error) => {
+    console.error("No se pudo conectar con la base de datos de votos", error);
+    container.innerHTML = '<div class="no-votes">No se pudo conectar con la votación. Revisa tu conexión o la configuración de Firebase.</div>';
+  });
 }
 
 async function saveVotes(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(votes), true);
+    await votesRef.set(votes);
   }catch(e){
     console.error("No se pudo guardar el voto", e);
   }
@@ -672,7 +699,8 @@ async function castVote(placeId){
     votes.push({nombre:name, lugarId:placeId, ts:Date.now()});
   }
   await saveVotes();
-  render(false);
+  // No hace falta llamar render() aquí: el listener de Firebase (loadVotes)
+  // recibe el cambio y actualiza la pantalla de todos automáticamente.
 }
 
 function burstConfetti(){
@@ -822,12 +850,15 @@ const confirmBox = document.getElementById("confirm-box");
 resetLink.addEventListener("click", () => confirmBox.classList.add("show"));
 document.getElementById("cancel-reset").addEventListener("click", () => confirmBox.classList.remove("show"));
 document.getElementById("confirm-reset").addEventListener("click", async () => {
-  votes = [];
   lastWinnerId = null;
   lastCounts = {};
-  await saveVotes();
+  try{
+    await votesRef.remove();
+  }catch(e){
+    console.error("No se pudo reiniciar la votación", e);
+  }
   confirmBox.classList.remove("show");
-  render(true);
+  // El listener de Firebase recibirá el cambio y volverá a dibujar todo.
 });
 
 loadVotes();
